@@ -524,7 +524,8 @@ BASE_NAMES = None
 def fresh_globals():
     g = {'__name__': '__main__', '__builtins__': __builtins__}
     for k, v in list(globals().items()):
-        if not k.startswith('_') and k not in ('api', 'Tracer', 'Encoder', 'Sub', 'Out', 'StepLimit', 'NeedInput', 'fresh_globals'):
+        if not k.startswith('_') and k not in ('api', 'Tracer', 'Encoder', 'Sub', 'Out', 'StepLimit', 'NeedInput', 'fresh_globals',
+                                                     'line_meanings', 'Explainer', 'ERRORS', 'OPS'):
             g[k] = v
     return g
 
@@ -714,8 +715,12 @@ def do_trace(p):
             if c.get('e', -1) >= tr.cut:
                 c.pop('e', None)
                 c.pop('r', None)
+    try:
+        meaning = globals()['line_meanings'](src)
+    except Exception:
+        meaning = {}
     return {"steps": tr.steps, "calls": tr.calls, "out": out.text(), "result": result,
-            "error": err, "truncated": tr.truncated, "needInput": tr.need}
+            "error": err, "truncated": tr.truncated, "needInput": tr.need, "meaning": meaning}
 
 
 def do_test(p):

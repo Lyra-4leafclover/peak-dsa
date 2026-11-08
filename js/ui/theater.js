@@ -64,7 +64,7 @@ export async function showTrace(el, { code, notes = {}, payload, opts = {}, onDo
       box.innerHTML = `<label for="stdin-in">Your program is waiting for you to type something.${asked ? ` It asked: <b>${esc(asked)}</b>` : ''}</label>
         <div class="stdin-row"><input id="stdin-in" autocomplete="off" spellcheck="false" placeholder="Type your answer, then press Enter"><button class="btn green" type="submit">Send</button></div>
         ${answers.length ? `<div class="stdin-past"><span class="muted">Your answers so far:</span> ${answers.map(a => `<code>${esc(a) || '(empty)'}</code>`).join(' ')} <button type="button" class="chipbtn restart">Start over</button></div>` : ''}`;
-      const ex = holder.querySelector('.explain');
+      const ex = holder.querySelector('.meaning') || holder.querySelector('.explain');
       ex ? ex.after(box) : holder.appendChild(box);
       box.onsubmit = async e => {
         e.preventDefault();
