@@ -308,3 +308,13 @@ button.w-gcell { cursor: pointer; }
 .rm-banner .grow { flex: 1; min-width: 200px; }
 @media (max-width: 900px) { .rm-cols { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 480px) { .rm-stage { grid-template-columns: minmax(0, 1fr); } .rm-num { width: 34px; height: 34px; } }
+
+/* input() box under the step explanation */
+.stdin-box { margin-top: 12px; background: var(--lav); border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.stdin-box label { font-weight: 800; line-height: 1.4; }
+.stdin-box label b { font-family: var(--mono); font-weight: 700; }
+.stdin-row { display: flex; gap: 8px; }
+.stdin-row input { flex: 1; min-width: 0; font-family: var(--mono); font-size: .95rem; padding: 9px 12px; border-radius: 12px; border: 2px solid var(--line); background: var(--bg); outline: none; }
+.stdin-row input:focus { border-color: var(--lavD); }
+.stdin-past { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .85rem; }
+.ex-final.wait { background: var(--lav); }

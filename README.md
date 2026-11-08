@@ -37,7 +37,7 @@ It's made for complete beginners up to intermediate level and coding-interview p
     <td width="33%" valign="top"><b>Problems</b><br>349 of the most-asked interview problems, written in simple words, each with hints, a tested solution and its own step-by-step animation.</td>
   </tr>
   <tr>
-    <td valign="top"><b>Visualizer</b><br>Paste any Python (a script, a function, or a LeetCode-style <code>class Solution</code>) and watch it run line by line.</td>
+    <td valign="top"><b>Visualizer</b><br>Paste any Python (a script, a function, a LeetCode-style <code>class Solution</code>, even a small game) and watch it run line by line. If it asks for <code>input()</code>, it pauses so you can type. Libraries like numpy and pandas load automatically.</td>
     <td valign="top"><b>Speed control</b><br>Snail, Walk, Run, Zoom and Manual speeds, a scrubber, arrow keys, and Predict mode, where you guess the next line before it runs.</td>
     <td valign="top"><b>Challenges, mocks, labs</b><br>Daily problem, predict-the-output, Big-O quiz, bug hunts, a speed round, timed mock interviews, and labs like a sorting race and a maze solver.</td>
   </tr>
@@ -102,7 +102,8 @@ The first time you open a lesson or problem, Python takes about 5 to 10 seconds 
 **For developers:**
 
 - **Python in the browser.** [Pyodide](https://pyodide.org) (CPython compiled to WebAssembly) runs inside a Web Worker (`js/engine/worker.js`), so the page never freezes.
-- **Recording.** `js/engine/tracer.py` uses `sys.settrace` to record every line, call, return and exception. For each step it saves the local variables, the printed output, and a snapshot of every object reachable from them: lists, dicts, sets, deques, tuples, `ListNode`, `TreeNode`, graph nodes and tries. Runs stop after 3,000 steps so a mistake like an infinite loop can't hang the browser.
+- **Recording.** `js/engine/tracer.py` uses `sys.settrace` to record every line, call, return and exception. For each step it saves the local variables, the printed output, and a snapshot of every object reachable from them: lists, dicts, sets, deques, tuples, `ListNode`, `TreeNode`, graph nodes and tries. Runs stop after 5,000 steps so a mistake like an infinite loop can't hang the browser.
+- **`input()` and libraries.** When a program calls `input()`, the run stops there and the page asks you to type. Each answer re-runs the program from the start with all your answers so far (`random` is seeded so the replay is identical), then playback continues from where it paused. `time.sleep` is skipped. Imported libraries are loaded with Pyodide's package loader or `micropip`. Numpy arrays and pandas tables are drawn as rows and grids. Libraries that need a window or the internet (`tkinter`, `turtle`, `pygame`, `requests`) can't run in a browser, and the page says so.
 - **Playback.** `js/viz/player.js` replays the recorded steps instead of running the code again. `js/viz/render.js` picks a picture for each value: a row of boxes for a list, a grid for a list of lists, a tree or graph diagram for node objects, a stack of frames for recursion. `js/viz/explain.js` writes the plain-English sentence for each step.
 - **Problems.** Each problem is written in `tools/problems/p*.py` with its story, hints, solution, tests and complexity. `python3 tools/build_problems.py` runs every solution against its tests in real CPython and only writes the problems that pass to `js/data/problems.js`. A solution line ending in `#> note` shows that note while the line runs.
 - **Progress** is stored in `localStorage` under `peakdsa.v1`.
