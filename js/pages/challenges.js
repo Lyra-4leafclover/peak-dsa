@@ -57,7 +57,7 @@ export function render(el, mode, arg) {
     <div class="phead">${art('challenges', 'ph')}<div class="txt"><h1>Challenges</h1><p>Short, fun games that make the ideas stick. Every right answer earns XP. Streak: <b>${store.streak()} day(s)</b></p></div></div>
     <div class="card daily"><div class="minirow"><div style="font-size:2.4rem"></div><div class="grow"><h3 style="margin:0">Daily Challenge · ${today()}</h3><p style="margin:0">Today's problem: <b>${esc(d.title)}</b> <span class="tag ${d.diff}">${d.diff}</span> · solve it today for a <b>+25 XP bonus</b></p></div>
       ${dailyDone ? '<span class="tag bg-mint">Done today</span>' : `<a class="btn" href="#/problems/${d.slug}">Let's go →</a><button class="btn ghost small claim">I solved it! Claim bonus</button>`}</div></div>
-    <div class="grid g4" style="margin-top:18px">${Object.entries(MODES).map(([k, [t, dsc, art]]) => `<a class="tile" href="#/challenges/${k}"><div class="art">${art(art)}</div><div class="body"><h3>${t}</h3><p>${dsc}</p></div></a>`).join('')}</div></div>`;
+    <div class="grid g4" style="margin-top:18px">${Object.entries(MODES).map(([k, [t, dsc, ak]]) => `<a class="tile" href="#/challenges/${k}"><div class="art">${art(ak)}</div><div class="body"><h3>${t}</h3><p>${dsc}</p></div></a>`).join('')}</div></div>`;
   el.querySelector('.claim')?.addEventListener('click', () => {
     if (!store.isSolved(d.slug)) { toast('Solve it first! (Pass all tests on the problem page.)'); return; }
     if (store.mark('daily:' + today())) { store.addXP(25, 'daily'); store.badge('Daily Doer'); }
