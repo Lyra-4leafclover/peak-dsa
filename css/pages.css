@@ -327,3 +327,6 @@ button.w-gcell { cursor: pointer; }
 .mn-order ol { margin: 6px 0 0; padding-left: 22px; display: flex; flex-direction: column; gap: 4px; line-height: 1.45; }
 .mn-tip { margin-top: 10px; background: var(--mint); border-radius: 12px; padding: 8px 12px; font-size: .9rem; }
 .meaning code { overflow-wrap: anywhere; }
+.stdin-auto { display: flex; flex-wrap: wrap; gap: 6px; }
+.stdin-auto code { font-family: var(--mono); }
+.inbox p.small { font-size: .85rem; margin: 6px 0 0; }

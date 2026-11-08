@@ -432,6 +432,7 @@ class Tracer:
         self.truncated = False
         self.need = None
         self.cut = None
+        self.fb = []
 
     def visible(self, frame):
         mod = frame.f_code.co_name == '<module>'
@@ -525,7 +526,8 @@ def fresh_globals():
     g = {'__name__': '__main__', '__builtins__': __builtins__}
     for k, v in list(globals().items()):
         if not k.startswith('_') and k not in ('api', 'Tracer', 'Encoder', 'Sub', 'Out', 'StepLimit', 'NeedInput', 'fresh_globals',
-                                                     'line_meanings', 'Explainer', 'ERRORS', 'OPS'):
+                                                     'line_meanings', 'Explainer', 'ERRORS', 'OPS',
+                                                     'suggest_answer', 'guess_param'):
             g[k] = v
     return g
 
@@ -648,6 +650,7 @@ def do_trace(p):
         if answers:
             a = answers.pop(0)
             out.write(a + '\n')
+            tr.fb.append(out.n)
             return a
         if tr.need is None:
             tr.need, tr.cut = str(prompt), len(tr.steps)
@@ -715,12 +718,20 @@ def do_trace(p):
             if c.get('e', -1) >= tr.cut:
                 c.pop('e', None)
                 c.pop('r', None)
+        try:
+            suggest = suggest_answer(src, tr.steps[-1]['l'] if tr.steps else 0, tr.need,
+                                     [str(a) for a in (p.get('stdin') or [])], out.text(), tr.fb)
+        except Exception:
+            suggest = 'hello'
+    else:
+        suggest = None
     try:
         meaning = globals()['line_meanings'](src)
     except Exception:
         meaning = {}
     return {"steps": tr.steps, "calls": tr.calls, "out": out.text(), "result": result,
-            "error": err, "truncated": tr.truncated, "needInput": tr.need, "meaning": meaning}
+            "error": err, "truncated": tr.truncated, "needInput": tr.need, "meaning": meaning,
+            "suggest": suggest}
 
 
 def do_test(p):
@@ -780,6 +791,149 @@ def ann_type(a):
     return None
 
 
+def suggest_answer(src, line, prompt, answers, text, fb):
+    """Pick a sensible answer for input(), using the question text and how the code uses the answer."""
+    rng = random.Random(len(answers) * 7919 + len(text))
+    lines = src.split('\n')
+    code = lines[line - 1] if 0 < line <= len(lines) else ''
+    pl = prompt.lower()
+    numeric = bool(re.search(r'\b(int|float)\s*\(\s*input', code))
+    m = re.search(r'[(\[]([^()\[\]]*/[^()\[\]]*)[)\]]', prompt)
+    if m:
+        opts = [o.strip() for o in m.group(1).split('/') if o.strip()]
+        if opts and {o.lower() for o in opts} <= {'y', 'n', 'yes', 'no'}:
+            again = re.search(r'again|another|continue|more|retry', pl)
+            return next((o for o in opts if o.lower().startswith('n' if again else 'y')), opts[0])
+        if opts and not all(re.fullmatch(r'-?\d+', o) for o in opts):
+            return rng.choice(opts)
+    var = re.match(r'\s*(\w+)\s*=.*\binput\s*\(', code)
+    if var and not numeric:
+        name, lits = var.group(1), []
+        for n in ast.walk(ast.parse(src)):
+            if isinstance(n, ast.Compare):
+                parts = [n.left] + list(n.comparators)
+                hit = any((isinstance(x, ast.Name) and x.id == name) or
+                          (isinstance(x, ast.Call) and isinstance(x.func, ast.Attribute) and
+                           isinstance(x.func.value, ast.Name) and x.func.value.id == name) for x in parts)
+                if hit:
+                    for x in parts:
+                        if isinstance(x, ast.Constant) and isinstance(x.value, str):
+                            lits.append(x.value)
+                        if isinstance(x, (ast.Tuple, ast.List, ast.Set)):
+                            lits += [e.value for e in x.elts if isinstance(e, ast.Constant) and isinstance(e.value, str)]
+        lits = [x for x in dict.fromkeys(lits) if x.strip()]
+        if lits:
+            stop = [x for x in lits if x.lower() in ('q', 'quit', 'exit', 'stop', 'n', 'no', 'done', 'end', 'bye')]
+            if stop and len(answers) >= 8:
+                return stop[0]
+            return rng.choice([x for x in lits if x not in stop] or lits)
+    r = re.search(r'(-?\d+)\s*(?:-|–|to|and|\.\.)\s*(-?\d+)', prompt)
+    lo, hi = (int(r.group(1)), int(r.group(2))) if r else (None, None)
+    if lo is not None and lo > hi:
+        lo, hi = hi, lo
+    nums = [int(a) for a in answers if re.fullmatch(r'\s*-?\d+\s*', a)]
+    if 'guess' in pl or re.search(r'higher|too (high|low)', text, re.I):
+        if lo is None:
+            lo, hi = 1, 100
+        for i, a in enumerate(answers):
+            if not re.fullmatch(r'\s*-?\d+\s*', a) or i >= len(fb):
+                continue
+            seg, v = text[fb[i]: fb[i + 1] if i + 1 < len(fb) else len(text)], int(a)
+            if re.search(r'higher|too low|bigger|greater|go up', seg, re.I):
+                lo = max(lo, v + 1)
+            elif re.search(r'lower|too high|smaller|go down', seg, re.I):
+                hi = min(hi, v - 1)
+        if hi < lo:
+            lo, hi = hi, lo
+        return str((lo + hi) // 2)
+    if lo is not None:
+        free = [v for v in range(lo, hi + 1) if v not in nums] if hi - lo <= 1000 else []
+        return str(rng.choice(free) if free else rng.randint(lo, hi))
+    if re.search(r'colou?r', pl) and not numeric:
+        return rng.choice(['red', 'green', 'blue'])
+    if numeric or re.search(r'number|how many|\bage\b|how old|count|amount|size|digit|\bn\b|score|year|times|rows|\bcols?\b|column', pl):
+        if re.search(r'\bage\b|how old', pl):
+            return str(rng.randint(12, 60))
+        if 'year' in pl:
+            return str(rng.randint(1990, 2025))
+        return str(rng.randint(1, 10))
+    if 'name' in pl:
+        return rng.choice(['Ada', 'Alan', 'Grace', 'Linus'])
+    if 'word' in pl:
+        return rng.choice(['banana', 'racecar', 'python'])
+    if re.search(r'colou?r', pl):
+        return rng.choice(['red', 'green', 'blue'])
+    if re.search(r'sentence|text|message|string|line', pl):
+        return 'hello world'
+    return 'hello'
+
+
+STR_USES = {'.lower', '.upper', '.isalpha', '.isdigit', '.isalnum', '.split', '.strip', '.startswith', '.endswith',
+            '.replace', '.isspace', '.find', 'cmpstr', 'ord()'}
+LIST_USES = {'[]', 'for', 'len()', 'sum()', 'sorted()', 'max()', 'min()', 'set()', 'enumerate()', 'reversed()',
+             '.append', '.sort', '.pop', 'Counter()', 'heapify()'}
+
+
+def guess_param(fdef, name, typ):
+    """Example input for a parameter, worked out from its name and how the function uses it."""
+    if typ:
+        return None, None
+    uses = set()
+    for n in ast.walk(fdef):
+        if isinstance(n, ast.Attribute) and isinstance(n.value, ast.Name) and n.value.id == name:
+            uses.add('.' + n.attr)
+        elif isinstance(n, ast.Subscript):
+            v = n.value
+            if isinstance(v, ast.Subscript) and isinstance(v.value, ast.Name) and v.value.id == name:
+                uses.add('[][]')
+            elif isinstance(v, ast.Name) and v.id == name:
+                uses.add('[]')
+        elif isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and \
+                any(isinstance(a, ast.Name) and a.id == name for a in n.args):
+            uses.add(n.func.id + '()')
+        elif isinstance(n, (ast.For, ast.comprehension)) and isinstance(n.iter, ast.Name) and n.iter.id == name:
+            uses.add('for')
+        elif isinstance(n, ast.BinOp) and any(isinstance(x, ast.Name) and x.id == name for x in (n.left, n.right)):
+            uses.add('math')
+        elif isinstance(n, ast.Compare):
+            parts = [n.left] + list(n.comparators)
+            if any(isinstance(x, ast.Name) and x.id == name for x in parts):
+                for x in parts:
+                    if isinstance(x, ast.Constant) and isinstance(x.value, str):
+                        uses.add('cmpstr')
+                    elif isinstance(x, ast.Constant) and isinstance(x.value, (int, float)) and not isinstance(x.value, bool):
+                        uses.add('cmpnum')
+    low = name.lower()
+    if uses & {'.left', '.right'} or re.fullmatch(r'root\d?|tree|node', low):
+        return '[3, 9, 20, null, null, 15, 7]', 'TreeNode'
+    if '.next' in uses or re.fullmatch(r'head|l1|l2|list1|list2', low):
+        return '[1, 2, 3, 4, 5]', 'ListNode'
+    if '.neighbors' in uses:
+        return '[[2, 4], [1, 3], [2, 4], [1, 3]]', 'graph'
+    if '[][]' in uses or re.search(r'grid|board|matrix|mat$', low):
+        return ('[["1", "1", "0"], ["1", "0", "0"], ["0", "0", "1"]]' if 'cmpstr' in uses
+                else '[[1, 3, 1], [1, 5, 1], [4, 2, 1]]'), None
+    if re.search(r'interval|meeting', low):
+        return '[[1, 3], [2, 6], [8, 10], [15, 18]]', None
+    if re.search(r'edge|prereq|connection', low):
+        return '[[0, 1], [1, 2], [2, 3]]', None
+    if re.search(r'point', low):
+        return '[[1, 1], [2, 2], [3, 3]]', None
+    if re.search(r'^(words|strs|strings|names|tokens|wordlist)$', low):
+        return '["eat", "tea", "tan", "ate", "nat", "bat"]', None
+    is_str = bool(uses & STR_USES) or re.fullmatch(r's|t|s1|s2|word|text|string|sentence|pattern|p|txt|str\w*', low)
+    is_list = bool(uses & LIST_USES) or re.search(r'nums|arr|array|list|numbers|heights|prices|values|items|coins|stones', low)
+    if is_str and not re.search(r'nums|arr|list', low):
+        return ('"hello world"' if re.search(r'sentence|text', low) else '"racecar"'), None
+    if is_list:
+        return '[3, 1, 4, 1, 5, 9, 2, 6]', None
+    if uses & {'range()', 'math', 'cmpnum'} or re.fullmatch(r'n|m|k|x|y|num|target|amount|capacity|limit|goal|count|size|steps', low):
+        return {'target': '9', 'k': '3', 'amount': '11'}.get(low, '5'), None
+    if re.match(r'is_|flag|ok$', low):
+        return 'True', None
+    return None, None
+
+
 def do_inspect(p):
     """Figure out what a pasted LeetCode solution expects as input."""
     src = p['code']
@@ -793,8 +947,13 @@ def do_inspect(p):
 
     def sig(fdef, skip_self):
         args = fdef.args.args[1:] if skip_self else fdef.args.args
-        return [{"name": a.arg, "type": ann_type(a.annotation),
-                 "hint": ast.unparse(a.annotation) if a.annotation else ''} for a in args]
+        out = []
+        for a in args:
+            typ = ann_type(a.annotation)
+            g, t2 = guess_param(fdef, a.arg, typ)
+            out.append({"name": a.arg, "type": typ or t2, "guess": g,
+                        "hint": ast.unparse(a.annotation) if a.annotation else ''})
+        return out
 
     if sol:
         meths = [m for m in sol.body if isinstance(m, ast.FunctionDef) and not m.name.startswith('_')]
