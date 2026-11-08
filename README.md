@@ -125,21 +125,6 @@ The first time you open a lesson or problem, Python takes about 5 to 10 seconds 
 | 10 | Sorting & intervals | 21 | Bit tricks |
 | 11 | Linked lists | | Then: mock interviews |
 
-## Run it yourself
-
-It's a static site, so there's nothing to build or install.
-
-```bash
-git clone https://github.com/Lyra-4leafclover/peak-dsa.git
-cd peak-dsa
-python3 -m http.server 8000
-# open http://localhost:8000
-```
-
-Double-clicking `index.html` won't work, because browsers block web workers and module imports on `file://` pages.
-
-**Hosting:** upload the files as they are to GitHub Pages, Netlify, Vercel or Cloudflare Pages. The live site uses GitHub Pages from the `main` branch root (the `.nojekyll` file stops GitHub from processing the files).
-
 ## Adding problems
 
 Add a `P(...)` entry to a file in `tools/problems/`, then run:
