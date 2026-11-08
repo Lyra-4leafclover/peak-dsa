@@ -35,6 +35,6 @@ python3 tools/build_problems.py   # writes js/data/problems.js
 - `js/pages/` one module per route
 - `js/learn/widgets.js` interactive data-structure toys
 - `js/data/` lessons, quizzes, generated problems
-- `assets/art/` illustrations
+- `js/ui/icons.js` flat Lucide icons (ISC) used for page art
 
 Problem descriptions are original, written for this project. LeetCode numbers are only given as references.

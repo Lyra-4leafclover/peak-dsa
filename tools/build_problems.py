@@ -32,7 +32,7 @@ def starter(src, mode, fn, kinds):
             name = s[4:].split('(')[0]
             if mode == 'design' or name == fn or ind == 0 and name == fn:
                 out.append(l)
-                out.append(' ' * (ind + 4) + '# ✏️ your code here')
+                out.append(' ' * (ind + 4) + '# your code here')
                 out.append(' ' * (ind + 4) + 'pass')
                 out.append('')
     hdr = ''.join(NODE_HDR[k] for k in sorted(kinds) if k in NODE_HDR)

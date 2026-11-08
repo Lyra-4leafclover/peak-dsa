@@ -1,5 +1,7 @@
 /* Router + shell. Each page lives in js/pages/*.js and exports render(el, ...params). */
 import { store } from './store.js';
+import { hydrateIcons } from './ui/icons.js';
+hydrateIcons();
 
 const routes = {
   '': () => import('./pages/home.js'),
@@ -27,7 +29,7 @@ async function route() {
     if (typeof r === 'function') cleanup = r;
   } catch (e) {
     console.error(e);
-    app.innerHTML = `<div class="wrap" style="padding:60px 20px"><h2>Oops, this page tripped over 🙈</h2><p class="muted">${String(e.message || e)}</p><a class="btn" href="#/">Go home</a></div>`;
+    app.innerHTML = `<div class="wrap" style="padding:60px 20px"><h2>Oops, this page tripped over</h2><p class="muted">${String(e.message || e)}</p><a class="btn" href="#/">Go home</a></div>`;
   }
   window.scrollTo(0, 0);
 }
@@ -43,14 +45,14 @@ export function toast(msg, ms = 2600) {
 function paintXP() {
   const lv = store.level();
   const pill = document.getElementById('xp-pill');
-  pill.querySelector('.lv').textContent = lv.name.split(' ').pop();
+  pill.querySelector('.lv').textContent = `Lv ${lv.idx + 1}`;
   pill.querySelector('.xpn').textContent = `${store.data().xp} XP`;
   pill.title = `${lv.name} · streak ${store.streak()} day(s)`;
 }
 store.sub(paintXP);
 paintXP();
-window.addEventListener('xp', e => { if (e.detail.n >= 5) toast(`+${e.detail.n} XP ✨`); });
-window.addEventListener('badge', e => toast(`🏅 New badge: ${e.detail}`, 3500));
+window.addEventListener('xp', e => { if (e.detail.n >= 5) toast(`+${e.detail.n} XP`); });
+window.addEventListener('badge', e => toast(`New badge: ${e.detail}`, 3500));
 document.getElementById('burger').onclick = () => document.getElementById('navlinks').classList.toggle('open');
 window.addEventListener('hashchange', route);
 route();

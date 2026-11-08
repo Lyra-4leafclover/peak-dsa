@@ -158,7 +158,7 @@ main { min-height: calc(100vh - 64px); padding-bottom: 60px; }
 .ex-chg { margin-top: 8px; font-size: .92rem; }
 .ex-chg ul { margin: 4px 0 0; padding-left: 20px; }
 .ex-chg li { margin: 2px 0; }
-.ex-chg li.t-add::marker { content: '➕ '; } .ex-chg li.t-del::marker { content: '➖ '; } .ex-chg li.t-new::marker { content: '✨ '; } .ex-chg li.t-swap::marker { content: '🔄 '; } .ex-chg li.t-chg::marker { content: '✏️ '; }
+.ex-chg li.t-add::marker { content: '+  '; } .ex-chg li.t-del::marker { content: '−  '; } .ex-chg li.t-new::marker { content: '+  '; } .ex-chg li.t-swap::marker { content: '⇄  '; } .ex-chg li.t-chg::marker { content: '~  '; }
 .ex-final { margin-top: 10px; background: var(--mint); padding: 10px 14px; border-radius: 12px; font-weight: 800; }
 .ex-final.err { background: var(--pink); }
 .ex-ask { background: var(--lav); border-radius: 12px; padding: 8px 12px; font-weight: 800; margin-bottom: 8px; animation: pop .3s; }

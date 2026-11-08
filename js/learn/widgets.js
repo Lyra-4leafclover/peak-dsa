@@ -3,7 +3,7 @@ import { esc } from '../viz/values.js';
 const rnd = n => Math.floor(Math.random() * n);
 const wait = ms => new Promise(r => setTimeout(r, ms));
 function shell(el, title, ctrls) {
-  el.innerHTML = `<h3>🕹 Play with it: ${title}</h3><div class="ctrls">${ctrls}</div><div class="stage"></div><div class="say">Press a button above 👆</div>`;
+  el.innerHTML = `<h3>Play with it: ${title}</h3><div class="ctrls">${ctrls}</div><div class="stage"></div><div class="say">Press a button above</div>`;
   return [el.querySelector('.stage'), m => { el.querySelector('.say').innerHTML = m; }, s => el.querySelector(s)];
 }
 const num = (el, s, d) => { const v = parseInt(el.querySelector(s)?.value, 10); return Number.isNaN(v) ? d : v; };
@@ -12,11 +12,11 @@ const W = {
   array(el) {
     let a = [3, 1, 4, 1, 5], hi = -1, cls = {};
     const [stage, say] = shell(el, 'lockers', `<input class="v" value="7" aria-label="value"><input class="i" value="2" aria-label="index"><button class="btn small" data-a="read">Read [i]</button><button class="btn small soft" data-a="append">append(v)</button><button class="btn small soft" data-a="insert">insert(i, v)</button><button class="btn small ghost" data-a="pop">pop()</button><button class="btn small ghost" data-a="del">pop(i)</button>`);
-    const draw = () => { stage.innerHTML = `<div class="w-row">${a.map((x, i) => `<div class="w-cell"><div class="w-lbl">${i === hi ? '👀' : ''}</div><div class="w-box ${cls[i] || ''}">${x}</div><div class="w-idx">${i}</div></div>`).join('') || '<i class="muted">empty list []</i>'}</div>`; };
+    const draw = () => { stage.innerHTML = `<div class="w-row">${a.map((x, i) => `<div class="w-cell"><div class="w-lbl">${i === hi ? '↑' : ''}</div><div class="w-box ${cls[i] || ''}">${x}</div><div class="w-idx">${i}</div></div>`).join('') || '<i class="muted">empty list []</i>'}</div>`; };
     el.querySelector('.ctrls').onclick = async e => {
       const b = e.target.closest('[data-a]'); if (!b) return;
       const v = num(el, '.v', rnd(9)), i = num(el, '.i', 0); cls = {}; hi = -1;
-      if (b.dataset.a === 'read') { if (i < 0 || i >= a.length) { say(`💥 IndexError: there is no locker ${i}. Valid lockers are 0 to ${a.length - 1}.`); return; } hi = i; cls[i] = 'hi'; say(`nums[${i}] is <b>${a[i]}</b>. We jumped straight there: <b>1 step</b>, O(1).`); }
+      if (b.dataset.a === 'read') { if (i < 0 || i >= a.length) { say(`IndexError: there is no locker ${i}. Valid lockers are 0 to ${a.length - 1}.`); return; } hi = i; cls[i] = 'hi'; say(`nums[${i}] is <b>${a[i]}</b>. We jumped straight there: <b>1 step</b>, O(1).`); }
       if (b.dataset.a === 'append') { a.push(v); cls[a.length - 1] = 'ok new'; say(`Added ${v} at the end. Nobody had to move: <b>O(1)</b>.`); }
       if (b.dataset.a === 'pop') { if (!a.length) return say('Empty! Nothing to pop.'); const x = a.pop(); say(`Removed ${x} from the end. <b>O(1)</b>.`); }
       if (b.dataset.a === 'insert' || b.dataset.a === 'del') {
@@ -25,7 +25,7 @@ const W = {
         if (!ins && !a.length) return say('Empty!');
         const moved = a.length - k - (ins ? 0 : 1);
         for (let j = k; j < a.length; j++) cls[j] = 'hi';
-        draw(); say(`${moved} locker(s) must shift ${ins ? 'right' : 'left'} first… 🏃`); await wait(700);
+        draw(); say(`${moved} locker(s) must shift ${ins ? 'right' : 'left'} first…`); await wait(700);
         if (ins) a.splice(k, 0, v); else a.splice(k, 1);
         cls = {}; if (ins) cls[k] = 'ok new';
         say(`${ins ? `Inserted ${v} at ${k}` : `Removed locker ${k}`}. ${moved} item(s) shifted: that's <b>O(n)</b>.`);
@@ -41,20 +41,20 @@ const W = {
     el.querySelector('.ctrls').onclick = e => {
       const a = e.target.closest('[data-a]')?.dataset.a; if (!a) return;
       if (a === 'push') { const v = num(el, '.v', rnd(9)); s.push(v); say(`Put pancake <b>${v}</b> on top.`); }
-      if (a === 'pop') say(s.length ? `Ate pancake <b>${s.pop()}</b> from the top. Yum.` : '💥 Empty plate! Popping an empty stack crashes.');
+      if (a === 'pop') say(s.length ? `Ate pancake <b>${s.pop()}</b> from the top. Yum.` : 'Empty plate! Popping an empty stack crashes.');
       if (a === 'peek') say(s.length ? `The top pancake is <b>${s[s.length - 1]}</b> (we just looked).` : 'Nothing on the plate.');
       draw();
     };
     draw();
   },
   queue(el) {
-    let q = ['🐱1', '🐶2'], n = 3;
+    let q = ['P1', 'P2'], n = 3;
     const [stage, say] = shell(el, 'boba line', `<button class="btn small" data-a="add">append (join back)</button><button class="btn small soft" data-a="serve">popleft (serve front)</button>`);
     const draw = () => { stage.innerHTML = `<div class="w-queue"><span class="qend">front →</span>${q.map((x, i) => `<div class="w-person ${i === 0 ? 'front' : ''}">${x}</div>`).join('') || '<i class="muted">nobody</i>'}<span class="qend">← back</span></div>`; };
     el.querySelector('.ctrls').onclick = e => {
       const a = e.target.closest('[data-a]')?.dataset.a; if (!a) return;
-      if (a === 'add') { const x = ['🐰', '🐸', '🐼', '🦊', '🐨'][rnd(5)] + n++; q.push(x); say(`${x} joined the BACK of the line.`); }
-      if (a === 'serve') say(q.length ? `${q.shift()} was at the front and got their boba 🧋` : 'The line is empty!');
+      if (a === 'add') { const x = 'P' + n++; q.push(x); say(`${x} joined the BACK of the line.`); }
+      if (a === 'serve') say(q.length ? `${q.shift()} was at the front and got their boba` : 'The line is empty!');
       draw();
     };
     draw();
@@ -89,7 +89,7 @@ const W = {
       const pre = `hash("${esc(k)}") = letter codes add up to ${sum}, ${sum} % ${N} = <b>bucket ${i}</b>. `;
       const at = B[i].findIndex(p => p[0] === k);
       if (a === 'put') { if (at >= 0) B[i][at][1] = v; else B[i].push([k, v]); say(pre + (at >= 0 ? 'Key was already there, so we updated it.' : `Stored it there.${B[i].length > 1 ? ' (Two keys share a bucket: a "collision". They just sit together.)' : ''}`)); }
-      if (a === 'get') say(pre + (at >= 0 ? `Found it: <b>${B[i][at][1]}</b>. No searching other buckets!` : '💥 KeyError: not in that bucket, so it\'s not stored anywhere.'));
+      if (a === 'get') say(pre + (at >= 0 ? `Found it: <b>${B[i][at][1]}</b>. No searching other buckets!` : 'KeyError: not in that bucket, so it\'s not stored anywhere.'));
       if (a === 'del') { if (at >= 0) B[i].splice(at, 1); say(pre + (at >= 0 ? 'Removed.' : 'Nothing to remove.')); }
       draw();
     };
@@ -114,11 +114,11 @@ const W = {
     el.querySelector('.ctrls').onclick = async e => {
       const a = e.target.closest('[data-a]')?.dataset.a; if (!a) return; const v = num(el, '.v', rnd(99));
       if (a === 'clear') { root = null; draw(); say('Fresh empty tree. Insert some numbers!'); return; }
-      if (a === 'in') { const out = []; const go = n => { if (n) { go(n.l); out.push(n.v); go(n.r); } }; go(root); const mk = {}; for (const x of out) { mk[x] = 'ok'; draw(mk); say(`inorder: ${out.slice(0, out.indexOf(x) + 1).join(', ')}`); await wait(350); } say(`Inorder (left, me, right) gives <b>sorted order</b>: ${out.join(', ')} 🎉`); return; }
+      if (a === 'in') { const out = []; const go = n => { if (n) { go(n.l); out.push(n.v); go(n.r); } }; go(root); const mk = {}; for (const x of out) { mk[x] = 'ok'; draw(mk); say(`inorder: ${out.slice(0, out.indexOf(x) + 1).join(', ')}`); await wait(350); } say(`Inorder (left, me, right) gives <b>sorted order</b>: ${out.join(', ')}`); return; }
       let n = root, steps = 0; const mk = {};
       while (n) { mk[n.v] = 'cur'; draw(mk); steps++; if (v === n.v) break; say(`${v} ${v < n.v ? '<' : '>'} ${n.v}, so go ${v < n.v ? 'LEFT' : 'RIGHT'}`); await wait(550); mk[n.v] = 'hi'; n = v < n.v ? n.l : n.r; }
       if (a === 'find') { if (n) { mk[n.v] = 'ok'; say(`Found ${v} in ${steps} step(s)! We skipped most of the tree.`); } else say(`Fell off the tree after ${steps} step(s): ${v} isn't here.`); draw(mk); }
-      else { if (n) say(`${v} is already in the tree.`); else { root = ins(root, v); mk[v] = 'ok'; say(`Found an empty spot after ${steps} step(s). ${v} lives there now 🌱`); } draw(mk); }
+      else { if (n) say(`${v} is already in the tree.`); else { root = ins(root, v); mk[v] = 'ok'; say(`Found an empty spot after ${steps} step(s). ${v} lives there now`); } draw(mk); }
     };
     draw();
   },
@@ -139,7 +139,7 @@ const W = {
       if (a === 'push') {
         h.push(num(el, '.v', rnd(20))); let i = h.length - 1; draw({ [i]: 'hi' }); say('Added at the bottom. Now it bubbles UP while smaller than its parent…'); await wait(600);
         while (i && h[i] < h[(i - 1) >> 1]) { const p = (i - 1) >> 1; sw(i, p); i = p; draw({ [i]: 'hi' }); await wait(600); }
-        say('Settled! The smallest is still on the throne 👑'); draw({ [i]: 'ok' });
+        say('Settled! The smallest is still on the throne'); draw({ [i]: 'ok' });
       } else {
         if (!h.length) return say('Empty heap!');
         const top = h[0]; const last = h.pop(); if (h.length) { h[0] = last; let i = 0; draw({ 0: 'hi' }); say(`Took ${top} off the throne. Moved the last item to the top; now it sinks DOWN…`); await wait(700);
@@ -179,14 +179,14 @@ const W = {
     function draw(hl = '') {
       const rows = []; const go = (n, pre, d) => { for (const c of Object.keys(n).filter(k => k !== '$').sort()) { rows.push([pre + c, d, !!n[c].$]); go(n[c], pre + c, d + 1); } };
       go(root, '', 0);
-      stage.innerHTML = `<div style="font-family:var(--mono);font-weight:800;line-height:1.9;width:100%">${rows.map(([p, d, end]) => `<div style="padding-left:${d * 26}px">${'└ '}<span class="kvp" style="background:${hl && hl.startsWith(p) ? 'var(--butter)' : end ? 'var(--mint)' : 'var(--lav)'};border-radius:8px;padding:1px 8px">${p.at(-1)}</span>${end ? ' <span class="tiny muted">✔ "' + p + '"</span>' : ''}</div>`).join('')}</div>`;
+      stage.innerHTML = `<div style="font-family:var(--mono);font-weight:800;line-height:1.9;width:100%">${rows.map(([p, d, end]) => `<div style="padding-left:${d * 26}px">${'└ '}<span class="kvp" style="background:${hl && hl.startsWith(p) ? 'var(--butter)' : end ? 'var(--mint)' : 'var(--lav)'};border-radius:8px;padding:1px 8px">${p.at(-1)}</span>${end ? ' <span class="tiny muted">"' + p + '"</span>' : ''}</div>`).join('')}</div>`;
     }
     el.querySelector('.ctrls').onclick = e => {
       const a = e.target.closest('[data-a]')?.dataset.a; if (!a) return; const w = el.querySelector('.k').value.trim().toLowerCase().replace(/[^a-z]/g, ''); if (!w) return;
       let n = root; let i = 0; for (; i < w.length && n; i++) n = n[w[i]];
       if (a === 'add') { add(w); say(`Inserted "${w}". Shared letters were reused, new ones were added. Green = a word ends here.`); }
-      else if (a === 'find') say(n && n.$ ? `"${w}" is a word here ✅ (${w.length} steps)` : n ? `The path exists but no word ends at "${w}" ❌` : `Path breaks at letter ${i}: "${w}" is not here ❌`);
-      else say(n ? `Yes! Some word starts with "${w}" ✅` : `No word starts with "${w}" ❌`);
+      else if (a === 'find') say(n && n.$ ? `"${w}" is a word here (${w.length} steps)` : n ? `The path exists but no word ends at "${w}"` : `Path breaks at letter ${i}: "${w}" is not here`);
+      else say(n ? `Yes! Some word starts with "${w}"` : `No word starts with "${w}"`);
       draw(w);
     };
     draw();
@@ -197,9 +197,9 @@ const W = {
     const draw = (mid) => { stage.innerHTML = `<div style="width:100%"><div style="display:flex;gap:2px;flex-wrap:wrap">${Array.from({ length: 100 }, (_, i) => i + 1).map(x => `<button class="w-box ${x === mid ? 'hi' : x < lo || x > hi ? 'dim' : ''}" data-g="${x}" style="min-width:30px;height:30px;font-size:.75rem;padding:0;cursor:pointer">${x}</button>`).join('')}</div></div>`; };
     const reset = () => { secret = 1 + rnd(100); lo = 1; hi = 100; tries = 0; draw(); say('I picked a number from 1 to 100. Click a number to guess! Smart move: always guess the middle.'); };
     stage.onclick = e => { const b = e.target.closest('[data-g]'); if (!b) return; const g = +b.dataset.g; tries++;
-      if (g === secret) { say(`🎉 Got it in ${tries} tries! Binary search never needs more than 7 for 100 numbers.`); lo = hi = g; draw(g); return; }
-      if (g < secret) lo = Math.max(lo, g + 1); else hi = Math.min(hi, g - 1); draw(g); say(`${g} is too ${g < secret ? 'LOW ⬆' : 'HIGH ⬇'}. The answer is between ${lo} and ${hi}. (try #${tries})`); };
-    el.querySelector('.ctrls').onclick = async e => { const a = e.target.closest('[data-a]')?.dataset.a; if (a === 'new') reset(); if (a === 'bot') { lo = 1; hi = 100; tries = 0; while (lo <= hi) { const m = (lo + hi) >> 1; tries++; draw(m); if (m === secret) { say(`🤖 Found ${m} in ${tries} guesses by always picking the middle!`); return; } say(`🤖 guess ${m}: too ${m < secret ? 'low' : 'high'}`); if (m < secret) lo = m + 1; else hi = m - 1; await wait(700); } } };
+      if (g === secret) { say(`Got it in ${tries} tries! Binary search never needs more than 7 for 100 numbers.`); lo = hi = g; draw(g); return; }
+      if (g < secret) lo = Math.max(lo, g + 1); else hi = Math.min(hi, g - 1); draw(g); say(`${g} is too ${g < secret ? 'LOW' : 'HIGH'}. The answer is between ${lo} and ${hi}. (try #${tries})`); };
+    el.querySelector('.ctrls').onclick = async e => { const a = e.target.closest('[data-a]')?.dataset.a; if (a === 'new') reset(); if (a === 'bot') { lo = 1; hi = 100; tries = 0; while (lo <= hi) { const m = (lo + hi) >> 1; tries++; draw(m); if (m === secret) { say(`Found ${m} in ${tries} guesses by always picking the middle!`); return; } say(`guess ${m}: too ${m < secret ? 'low' : 'high'}`); if (m < secret) lo = m + 1; else hi = m - 1; await wait(700); } } };
     reset();
   },
   bars(el) {

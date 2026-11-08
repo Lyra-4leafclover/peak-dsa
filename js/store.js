@@ -8,8 +8,8 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(data)); } ca
 const today = () => new Date().toISOString().slice(0, 10);
 
 export const LEVELS = [
-  [0, 'Seedling 🌱'], [50, 'Sprout 🌿'], [150, 'Pointer Pal 👉'], [300, 'Loop Legend 🔁'], [500, 'Hash Hero 🗂'],
-  [800, 'Tree Climber 🌳'], [1200, 'Graph Guru 🕸'], [1800, 'DP Wizard 🧙'], [2600, 'Algo Royalty 👑'], [4000, 'PEAK 🏔'],
+  [0, 'Seedling'], [50, 'Sprout'], [150, 'Pointer Pal'], [300, 'Loop Legend'], [500, 'Hash Hero'],
+  [800, 'Tree Climber'], [1200, 'Graph Guru'], [1800, 'DP Wizard'], [2600, 'Algo Royalty'], [4000, 'PEAK'],
 ];
 
 export const store = {

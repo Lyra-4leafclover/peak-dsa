@@ -55,7 +55,7 @@ export function renderState(el, step, prev, trace, opts = {}) {
     else {
       const o = h[v.r];
       const kind = kindOf(o);
-      const icon = { list: '▦', dict: '🗂', set: '🫧', deque: '🚶', tuple: '▦', lnode: '🔗', tnode: '🌳', gnode: '🕸', trie: '🌲', obj: '📦' }[kind] || '•';
+      const icon = { list: '▦', dict: '▤', set: '◇', deque: '⇄', tuple: '▦', lnode: '○', tnode: '○', gnode: '○', trie: '○', obj: '▣' }[kind] || '•';
       val = kind === 'lnode' || kind === 'tnode' || kind === 'gnode' ? `${icon} node(${esc(nodeLabel(o, h))})` : `${icon} <span class="see">${esc(kind === 'obj' ? o.cls : kind)} ↓</span>`;
     }
     cards.push(`<div class="vcard${changed ? ' flash' : ''}"><div class="vname">${esc(n)}</div><div class="vval">${val}</div></div>`);
@@ -115,7 +115,7 @@ export function renderState(el, step, prev, trace, opts = {}) {
   if (step.ret !== undefined && step.e === 'return') {
     parts.unshift(`<div class="retbox">↩ <b>${esc(top ? top.f : '')}</b> gives back <code>${pretty(step.ret, h)}</code></div>`);
   }
-  if (step.exc) parts.unshift(`<div class="retbox err">💥 ${esc(step.exc)}</div>`);
+  if (step.exc) parts.unshift(`<div class="retbox err">${esc(step.exc)}</div>`);
   el.innerHTML = parts.join('') || '<div class="viz-empty">No variables yet. Press ▶ to start.</div>';
   const cur = el.querySelector('.rec-cur');
   if (cur && cur.scrollIntoView) {

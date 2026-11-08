@@ -1,3 +1,4 @@
+import { art, icon } from '../ui/icons.js';
 /* Challenges: daily problem, predict the output, Big-O quiz, bug hunt, speed round. */
 import { PROBLEMS } from '../data/problems.js';
 import { PREDICT, BIGO, BIGO_OPTS, CONCEPTS, BUGS } from '../data/quizzes.js';
@@ -19,7 +20,7 @@ const codeBlock = c => `<pre class="qcode">${c.split('\n').map(highlight).join('
 /* Generic multiple-choice runner. items: [q, code, options, correct, why]. */
 export function runQuiz(el, items, { title, timeLimit = 0, perQ = 0, onEnd, xpEach = 2 }) {
   let i = 0, score = 0, left = timeLimit, timer = null, answered = false;
-  const end = () => { clearInterval(timer); el.innerHTML = `<div class="card scorecard"><div class="big">${score} / ${items.length}</div><p>${score === items.length ? '🏆 PERFECT!' : score >= items.length * .7 ? '🌟 Great job!' : '💪 Keep practising, you\'re getting there!'}</p><button class="btn again">Play again</button></div>`; el.querySelector('.again').onclick = () => onEnd?.(score, true); onEnd?.(score, false); };
+  const end = () => { clearInterval(timer); el.innerHTML = `<div class="card scorecard"><div class="big">${score} / ${items.length}</div><p>${score === items.length ? 'PERFECT!' : score >= items.length * .7 ? 'Great job!' : 'Keep practising, you\'re getting there!'}</p><button class="btn again">Play again</button></div>`; el.querySelector('.again').onclick = () => onEnd?.(score, true); onEnd?.(score, false); };
   function show() {
     if (i >= items.length) return end();
     answered = false;
@@ -31,7 +32,7 @@ export function runQuiz(el, items, { title, timeLimit = 0, perQ = 0, onEnd, xpEa
       const k = +b.dataset.k, ok = k === items[i][3];
       el.querySelectorAll('.qopt').forEach((x, j) => { if (j === items[i][3]) x.classList.add('right'); else if (j === k) x.classList.add('wrong'); });
       if (ok) { score++; store.addXP(xpEach, 'quiz'); }
-      el.querySelector('.why').innerHTML = `<div class="res-banner ${ok ? 'good' : 'bad'}">${ok ? '✅ Correct!' : '❌ Not quite.'} ${esc(items[i][4])}</div><button class="btn small nextq">Next →</button>`;
+      el.querySelector('.why').innerHTML = `<div class="res-banner ${ok ? 'good' : 'bad'}">${ok ? 'Correct!' : 'Not quite.'} ${esc(items[i][4])}</div><button class="btn small nextq">Next →</button>`;
       el.querySelector('.nextq').onclick = () => { i++; show(); };
     };
   }
@@ -42,10 +43,10 @@ export function runQuiz(el, items, { title, timeLimit = 0, perQ = 0, onEnd, xpEa
 }
 
 const MODES = {
-  predict: ['🔮 Predict the Output', 'Read tiny programs and guess what they print.', 'binarysearch'],
-  bigo: ['🧠 Big-O Quiz', 'How fast is this code? Pick its Big-O.', 'sorting'],
-  bugs: ['🐛 Bug Hunt', 'Each solution has ONE sneaky bug. Find it and fix it until tests pass.', 'labs'],
-  speed: ['⚡ Speed Round', '60 seconds. As many concept questions as you can.', 'challenges'],
+  predict: ['Predict the Output', 'Read tiny programs and guess what they print.', 'predict'],
+  bigo: ['Big-O Quiz', 'How fast is this code? Pick its Big-O.', 'bigo'],
+  bugs: ['Bug Hunt', 'Each solution has ONE sneaky bug. Find it and fix it until tests pass.', 'bugs'],
+  speed: ['Speed Round', '60 seconds. As many concept questions as you can.', 'speed'],
 };
 
 export function render(el, mode, arg) {
@@ -53,13 +54,13 @@ export function render(el, mode, arg) {
   const d = dailyProblem();
   const dailyDone = store.isDone('daily:' + today());
   el.innerHTML = `<div class="wrap">
-    <div class="phead"><img src="assets/art/challenges.webp" alt=""><div class="txt"><h1>Challenges</h1><p>Short, fun games that make the ideas stick. Every right answer earns XP. 🔥 Streak: <b>${store.streak()} day(s)</b></p></div></div>
-    <div class="card daily"><div class="minirow"><div style="font-size:2.4rem">📅</div><div class="grow"><h3 style="margin:0">Daily Challenge · ${today()}</h3><p style="margin:0">Today's problem: <b>${esc(d.title)}</b> <span class="tag ${d.diff}">${d.diff}</span> · solve it today for a <b>+25 XP bonus</b></p></div>
-      ${dailyDone ? '<span class="tag bg-mint">✅ Done today</span>' : `<a class="btn" href="#/problems/${d.slug}">Let's go →</a><button class="btn ghost small claim">I solved it! Claim bonus</button>`}</div></div>
-    <div class="grid g4" style="margin-top:18px">${Object.entries(MODES).map(([k, [t, dsc, art]]) => `<a class="tile" href="#/challenges/${k}"><div class="art"><img src="assets/art/${art}.webp" alt="" loading="lazy"></div><div class="body"><h3>${t}</h3><p>${dsc}</p></div></a>`).join('')}</div></div>`;
+    <div class="phead">${art('challenges', 'ph')}<div class="txt"><h1>Challenges</h1><p>Short, fun games that make the ideas stick. Every right answer earns XP. Streak: <b>${store.streak()} day(s)</b></p></div></div>
+    <div class="card daily"><div class="minirow"><div style="font-size:2.4rem"></div><div class="grow"><h3 style="margin:0">Daily Challenge · ${today()}</h3><p style="margin:0">Today's problem: <b>${esc(d.title)}</b> <span class="tag ${d.diff}">${d.diff}</span> · solve it today for a <b>+25 XP bonus</b></p></div>
+      ${dailyDone ? '<span class="tag bg-mint">Done today</span>' : `<a class="btn" href="#/problems/${d.slug}">Let's go →</a><button class="btn ghost small claim">I solved it! Claim bonus</button>`}</div></div>
+    <div class="grid g4" style="margin-top:18px">${Object.entries(MODES).map(([k, [t, dsc, art]]) => `<a class="tile" href="#/challenges/${k}"><div class="art">${art(art)}</div><div class="body"><h3>${t}</h3><p>${dsc}</p></div></a>`).join('')}</div></div>`;
   el.querySelector('.claim')?.addEventListener('click', () => {
-    if (!store.isSolved(d.slug)) { toast('Solve it first! (Pass all tests on the problem page.) 🙂'); return; }
-    if (store.mark('daily:' + today())) { store.addXP(25, 'daily'); store.badge('Daily Doer 📅'); }
+    if (!store.isSolved(d.slug)) { toast('Solve it first! (Pass all tests on the problem page.)'); return; }
+    if (store.mark('daily:' + today())) { store.addXP(25, 'daily'); store.badge('Daily Doer'); }
     render(el);
   });
 }
@@ -69,17 +70,17 @@ function play(el, mode, arg) {
   el.innerHTML = `<div class="wrap" style="padding-top:22px"><a class="crumb" href="#/challenges">← Challenges</a><h1>${t}</h1><p class="muted">${dsc}</p><div class="arena"></div></div>`;
   const arena = el.querySelector('.arena');
   if (mode === 'predict') {
-    const go = () => runQuiz(arena, shuffle(PREDICT).slice(0, 8), { title: 'Predict the Output', onEnd: (s, again) => { if (again) go(); else if (s >= 7) store.badge('Fortune Teller 🔮'); } });
+    const go = () => runQuiz(arena, shuffle(PREDICT).slice(0, 8), { title: 'Predict the Output', onEnd: (s, again) => { if (again) go(); else if (s >= 7) store.badge('Fortune Teller'); } });
     return go();
   }
   if (mode === 'bigo') {
     const items = () => shuffle(BIGO).slice(0, 8).map(([c, ans, why]) => ['What is the time complexity?', c, BIGO_OPTS, BIGO_OPTS.indexOf(ans), why]);
-    const go = () => runQuiz(arena, items(), { title: 'Big-O Quiz', onEnd: (s, again) => { if (again) go(); else if (s >= 7) store.badge('Big-O Brain 🧠'); } });
+    const go = () => runQuiz(arena, items(), { title: 'Big-O Quiz', onEnd: (s, again) => { if (again) go(); else if (s >= 7) store.badge('Big-O Brain'); } });
     return go();
   }
   if (mode === 'speed') {
     let stop;
-    const go = () => { stop = runQuiz(arena, shuffle([...CONCEPTS, ...PREDICT]).slice(0, 20), { title: 'Speed Round', timeLimit: 60, xpEach: 1, onEnd: (s, again) => { if (again) go(); else if (s >= 10) store.badge('Speed Demon ⚡'); } }); };
+    const go = () => { stop = runQuiz(arena, shuffle([...CONCEPTS, ...PREDICT]).slice(0, 20), { title: 'Speed Round', timeLimit: 60, xpEach: 1, onEnd: (s, again) => { if (again) go(); else if (s >= 10) store.badge('Speed Demon'); } }); };
     go(); return () => stop?.();
   }
   return bugHunt(arena, +(arg || 0));
@@ -88,8 +89,8 @@ function play(el, mode, arg) {
 async function bugHunt(el, idx) {
   const [slug, hint, code] = BUGS[idx % BUGS.length];
   const p = bySlug[slug];
-  el.innerHTML = `<div class="row" style="margin-bottom:10px">${BUGS.map((b, i) => `<a class="chipbtn ${i === idx ? 'on' : ''}" href="#/challenges/bugs/${i}">${store.isDone('bug:' + b[0]) ? '✅' : '🐛'} ${i + 1}</a>`).join('')}<span class="grow"></span><span class="pys"></span></div>
-    <div class="card code-card"><h3>${esc(p.title)}</h3><p>${esc(p.story)}</p><div class="res-banner warn">🕵️ Clue: ${esc(hint)}</div><div class="ed"></div>
+  el.innerHTML = `<div class="row" style="margin-bottom:10px">${BUGS.map((b, i) => `<a class="chipbtn ${i === idx ? 'on' : ''}" href="#/challenges/bugs/${i}">${store.isDone('bug:' + b[0]) ? '✓' : '○'} ${i + 1}</a>`).join('')}<span class="grow"></span><span class="pys"></span></div>
+    <div class="card code-card"><h3>${esc(p.title)}</h3><p>${esc(p.story)}</p><div class="res-banner warn">Clue: ${esc(hint)}</div><div class="ed"></div>
     <div class="row"><button class="btn green run">▶ Run tests</button><a class="btn ghost small" href="#/problems/${slug}">See the full problem</a>${idx + 1 < BUGS.length ? `<a class="btn soft small" href="#/challenges/bugs/${idx + 1}">Next bug →</a>` : ''}</div></div><div class="results"></div>`;
   const off = pyStatus(el.querySelector('.pys'));
   await waitForCM();
@@ -100,8 +101,8 @@ async function bugHunt(el, idx) {
     try {
       const res = await py.run('test', { ...payloadOf(p), code: ed.get(), tests: p.tests }, 15000);
       const o = renderResults(r, res, { names: argNames(p) });
-      if (o.total && o.pass === o.total && store.mark('bug:' + slug)) { store.addXP(15, 'bug'); toast('🐛 Squashed! +15 XP'); if (BUGS.every(b => store.isDone('bug:' + b[0]))) store.badge('Bug Squasher 🐛'); }
-    } catch (e) { r.innerHTML = `<div class="res-banner bad">${e.message === 'TIMEOUT' ? '⏰ Timed out (infinite loop?)' : esc(e.message)}</div>`; }
+      if (o.total && o.pass === o.total && store.mark('bug:' + slug)) { store.addXP(15, 'bug'); toast('Squashed! +15 XP'); if (BUGS.every(b => store.isDone('bug:' + b[0]))) store.badge('Bug Squasher'); }
+    } catch (e) { r.innerHTML = `<div class="res-banner bad">${e.message === 'TIMEOUT' ? 'Timed out (infinite loop?)' : esc(e.message)}</div>`; }
   };
   return off;
 }
