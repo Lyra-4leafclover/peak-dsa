@@ -4,7 +4,7 @@ A beginner-friendly website for learning data structures and algorithms, built a
 
 ## What's inside
 - **Learn**: 19 visual lessons (arrays, hash maps, stacks, queues, linked lists, trees, heaps, graphs, tries, Big-O, two pointers, sliding window, binary search, sorting, recursion, backtracking, DP, greedy). Each has an analogy, an interactive toy, a traced Python demo and common mistakes.
-- **Problems**: 177 classic interview problems with original plain-language descriptions, hints, tests and animated solutions. Write your own Python, run tests, and replay your own code.
+- **Problems**: 349 classic interview problems with original plain-language descriptions, hints, tests and animated solutions. Write your own Python, run tests, and replay your own code.
 - **Visualizer**: paste any Python (scripts, functions, LeetCode-style `class Solution`) and watch it run line by line with a live picture of every variable, list, dict, linked list, tree, graph and the call stack.
 - **Speeds**: Snail, Walk, Run, Zoom, Manual, plus Predict mode (guess the next line).
 - **Challenges**: daily problem, predict the output, Big-O quiz, bug hunt, 60-second speed round.
