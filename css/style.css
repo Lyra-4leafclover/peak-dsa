@@ -270,3 +270,8 @@ svg .elbl { font-size: 12px; fill: var(--lavD); font-weight: 900; }
 .stdout { background: #1f1f33; color: #c9f7d9; padding: 10px 12px; border-radius: 12px; margin: 0; white-space: pre-wrap; max-height: 180px; overflow: auto; font-size: .82rem; }
 .retbox { background: var(--mint); border-radius: 14px; padding: 8px 12px; font-weight: 800; margin-bottom: 12px; }
 .retbox.err { background: var(--pink); }
+
+@media (max-width: 1240px) {
+  .navlinks { gap: 2px; }
+  .navlinks a { padding: 8px 9px; font-size: .9rem; }
+}

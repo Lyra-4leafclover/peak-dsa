@@ -5,6 +5,7 @@ hydrateIcons();
 
 const routes = {
   '': () => import('./pages/home.js'),
+  roadmap: () => import('./pages/roadmap.js'),
   learn: () => import('./pages/learn.js'),
   problems: () => import('./pages/problems.js'),
   playground: () => import('./pages/playground.js'),

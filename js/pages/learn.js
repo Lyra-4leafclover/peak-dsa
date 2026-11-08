@@ -13,13 +13,16 @@ export function render(el, kind, id) {
   const card = l => `<a class="tile" href="#/learn/${l.kind}/${l.id}">${store.isDone('lesson:' + l.id) ? '<span class="done-badge">✓ done</span>' : ''}<div class="art">${art(l.art)}</div><div class="body"><h3>${l.emoji} ${l.title}</h3><p>${l.analogy.replace(/<[^>]+>/g, '').split('. ')[0]}.</p></div></a>`;
   el.innerHTML = `<div class="wrap">
     <div class="phead">${art('learn', 'ph')}<div class="txt"><h1>Learn</h1><p>Every lesson = a cute everyday picture, a toy you can poke, and real Python you can watch run line by line. Go in order if you're new, or jump to whatever confuses you.</p></div></div>
-    <h2>Data structures</h2><p class="muted">Ways to store stuff.</p><div class="grid g4">${LESSONS.filter(l => l.kind === 'ds').map(card).join('')}</div>
+    <div class="card rm-banner">${art('roadmap', 'sm')}<div class="grow"><b>New here? Follow the Roadmap.</b><div class="muted tiny">It tells you which lesson to read next and which problems to solve after it.</div></div><a class="btn small" href="#/roadmap">Open the roadmap</a></div>
+    <h2>Start here</h2><p class="muted">Python you need before anything else.</p><div class="grid g4">${LESSONS.filter(l => l.kind === 'basics').map(card).join('')}</div>
+    <h2 style="margin-top:34px">Data structures</h2><p class="muted">Ways to store stuff.</p><div class="grid g4">${LESSONS.filter(l => l.kind === 'ds').map(card).join('')}</div>
     <h2 style="margin-top:34px">Algorithm patterns</h2><p class="muted">Ways to solve stuff.</p><div class="grid g4">${LESSONS.filter(l => l.kind === 'algo').map(card).join('')}</div></div>`;
 }
 
 function lesson(el, L) {
   const i = LESSONS.indexOf(L), prev = LESSONS[i - 1], next = LESSONS[i + 1];
-  const practice = L.topic ? PROBLEMS.filter(p => p.topic === L.topic).slice(0, 6) : [];
+  const RANK = { Easy: 0, Medium: 1, Hard: 2 };
+  const practice = (L.practice ? L.practice.map(n => PROBLEMS.find(p => p.lc === n)).filter(Boolean) : L.topic ? PROBLEMS.filter(p => p.topic === L.topic) : []).sort((a, b) => RANK[a.diff] - RANK[b.diff]).slice(0, 8);
   el.innerHTML = `<div class="wrap lesson" style="padding-top:22px">
     <a class="crumb" href="#/learn">← All lessons</a>
     <div class="lhero">${art(L.art, 'lh')}<div><h1>${L.emoji} ${L.title}</h1><div class="analogy">${L.analogy}</div></div></div>

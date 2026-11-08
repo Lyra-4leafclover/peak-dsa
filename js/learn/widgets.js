@@ -1,5 +1,6 @@
 /* Poke-able mini toys for each data structure. Each takes a .playbox element. */
 import { esc } from '../viz/values.js';
+import { W2 } from './widgets2.js';
 const rnd = n => Math.floor(Math.random() * n);
 const wait = ms => new Promise(r => setTimeout(r, ms));
 function shell(el, title, ctrls) {
@@ -217,4 +218,4 @@ const W = {
     el.querySelector('.v').oninput = draw; draw();
   },
 };
-export function mountWidget(el, id) { if (W[id]) { W[id](el); return true; } return false; }
+export function mountWidget(el, id) { const f = W[id] || W2[id]; if (f) { f(el); return true; } return false; }

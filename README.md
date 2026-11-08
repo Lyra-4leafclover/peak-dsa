@@ -3,7 +3,8 @@
 A beginner-friendly website for learning data structures and algorithms, built around pictures and step-by-step Python execution.
 
 ## What's inside
-- **Learn**: 19 visual lessons (arrays, hash maps, stacks, queues, linked lists, trees, heaps, graphs, tries, Big-O, two pointers, sliding window, binary search, sorting, recursion, backtracking, DP, greedy). Each has an analogy, an interactive toy, a traced Python demo and common mistakes.
+- **Roadmap**: one ordered path in 21 stages, from Python basics to advanced graphs and 2-D DP. Each stage has lessons, problems sorted easy to hard, and a checkpoint quiz, with progress saved in the browser.
+- **Learn**: 29 visual lessons: Python basics, Big-O, arrays, strings, hash maps, stacks, queues, linked lists, trees, heaps, graphs, grids, union-find, tries, two pointers, sliding window, prefix sums, binary search, sorting, intervals, monotonic stack, recursion, backtracking, topological sort, shortest paths, 1-D and 2-D DP, greedy and bit tricks. Each has an analogy, an interactive toy, a traced Python demo and common mistakes.
 - **Problems**: 349 classic interview problems with original plain-language descriptions, hints, tests and animated solutions. Write your own Python, run tests, and replay your own code.
 - **Visualizer**: paste any Python (scripts, functions, LeetCode-style `class Solution`) and watch it run line by line with a live picture of every variable, list, dict, linked list, tree, graph and the call stack.
 - **Speeds**: Snail, Walk, Run, Zoom, Manual, plus Predict mode (guess the next line).

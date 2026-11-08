@@ -13,7 +13,7 @@ export function render(el) {
       <span class="tag bg-lav ic-tag">${icon('sparkles')} Learn DSA the visual way</span>
       <h1>Data structures & algorithms, <span>finally make sense.</span></h1>
       <p class="lead">No scary math. Every idea is a picture you can poke. Then watch real Python run <b>one line at a time</b>, in the exact order the computer reads it, with the picture changing right next to it.</p>
-      <div class="cta"><a class="btn" href="#/learn">Start learning</a><a class="btn ghost" href="#/problems">Solve problems</a><a class="btn soft" href="#/playground">Visualize any code</a></div>
+      <div class="cta"><a class="btn" href="#/roadmap">Start the roadmap</a><a class="btn ghost" href="#/learn">Lessons</a><a class="btn ghost" href="#/problems">Solve problems</a><a class="btn soft" href="#/playground">Visualize any code</a></div>
       <div class="stats"><div><b>${PROBLEMS.length}</b>problems with animated solutions</div><div><b>${TOPICS.length}</b>topics</div><div><b>5</b>playback speeds</div>${solved ? `<div><b>${solved}</b>solved by you</div>` : ''}</div>
     </div>
     <div class="art mosaic">${['array', 'tree', 'stack', 'graph', 'linkedlist', 'heap', 'hashmap', 'binarysearch', 'dp2'].map(k => art(k)).join('')}</div>
@@ -31,7 +31,8 @@ export function render(el) {
   <section class="section"><div class="wrap">
     <h2>Pick your adventure</h2><p class="muted">Everything is free, and your progress saves in this browser.</p>
     <div class="grid g3">
-      ${[['#/learn', 'learn', 'Learn', 'Visual lessons for every data structure and algorithm pattern, explained like you\'re five.'],
+      ${[['#/roadmap', 'roadmap', 'Roadmap', 'The order to learn everything in, from Python basics to advanced graphs and DP, with checkpoints.'],
+        ['#/learn', 'learn', 'Learn', 'Visual lessons for every data structure and algorithm pattern, explained like you\'re five.'],
         ['#/problems', 'problems', 'Problem Bank', `${PROBLEMS.length} classic interview problems with plain-word stories, hints and step-by-step animations.`],
         ['#/playground', 'visualizer', 'Code Visualizer', 'Paste ANY Python (even a LeetCode solution) and watch it run line by line with pictures.'],
         ['#/labs', 'labs', 'Labs', 'Sorting races, maze path-finders, a BST builder, a hash table, Big-O race track and more.'],
