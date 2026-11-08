@@ -63,6 +63,7 @@ export async function showTrace(el, { code, notes = {}, payload, opts = {}, onDo
       box.className = 'stdin-box';
       box.innerHTML = `<label for="stdin-in">Your program is waiting for you to type something.${asked ? ` It asked: <b>${esc(asked)}</b>` : ''}</label>
         <div class="stdin-row"><input id="stdin-in" autocomplete="off" spellcheck="false" placeholder="Type your answer, then press Enter"><button class="btn green" type="submit">Send</button></div>
+        <div class="stdin-auto"><button type="button" class="chipbtn auto1">Answer for me${trace.suggest != null ? `: <code>${esc(trace.suggest) || '(empty)'}</code>` : ''}</button><button type="button" class="chipbtn autoall">Auto-play to the end</button></div>
         ${answers.length ? `<div class="stdin-past"><span class="muted">Your answers so far:</span> ${answers.map(a => `<code>${esc(a) || '(empty)'}</code>`).join(' ')} <button type="button" class="chipbtn restart">Start over</button></div>` : ''}`;
       const ex = holder.querySelector('.meaning') || holder.querySelector('.explain');
       ex ? ex.after(box) : holder.appendChild(box);
@@ -74,6 +75,20 @@ export async function showTrace(el, { code, notes = {}, payload, opts = {}, onDo
         if (await run(Math.max(0, trace.steps.length - 2))) player.play();
       };
       box.querySelector('.restart')?.addEventListener('click', () => { answers.length = 0; run(0); });
+      box.querySelector('.auto1').addEventListener('click', () => { box.querySelector('input').value = trace.suggest ?? ''; box.requestSubmit(); });
+      box.querySelector('.autoall').addEventListener('click', async () => {
+        box.querySelectorAll('button, input').forEach(b => { b.disabled = true; });
+        const from = Math.max(0, trace.steps.length - 2), lab = box.querySelector('label');
+        let t = trace;
+        try {
+          while (t.needInput != null && answers.length < 80) {
+            answers.push(t.suggest ?? '');
+            lab.textContent = `Auto-playing... answer ${answers.length}: ${answers.at(-1)}`;
+            t = await py.run('trace', { code, maxSteps: LIMIT, ...payload, stdin: answers, seed }, 30000);
+          }
+        } catch (e) { /* run() below shows the error */ }
+        if (await run(from)) player.play();
+      });
     }
     return player;
   }

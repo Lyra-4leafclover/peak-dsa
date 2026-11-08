@@ -121,7 +121,7 @@ export async function render(el) {
     if (s.error) { $('.inputs').innerHTML = `<div class="res-banner bad">${esc(s.error)}</div>`; return null; }
     if (s.mode === 'function') {
       const old = sig && sig.fn === s.fn ? [...el.querySelectorAll('[data-in]')].map(i => i.value) : [];
-      $('.inputs').innerHTML = `<div class="inbox"><b>Inputs for <code>${esc(s.fn)}</code>:</b>${s.params.length ? '' : ' <span class="muted">(no inputs needed)</span>'}${s.params.map((p, i) => `<label><span>${esc(p.name)}${p.hint ? ` <i class="muted">: ${esc(p.hint)}</i>` : ''}</span><input data-in="${i}" placeholder="${esc(HINT[p.type] || 'e.g. [2, 7, 11, 15] or 9 or "abc"')}" value="${esc(old[i] ?? guess(p))}"></label>`).join('')}</div>`;
+      $('.inputs').innerHTML = `<div class="inbox"><b>Inputs for <code>${esc(s.fn)}</code>:</b>${s.params.length ? '' : ' <span class="muted">(no inputs needed)</span>'}${s.params.map((p, i) => `<label><span>${esc(p.name)}${p.hint ? ` <i class="muted">: ${esc(p.hint)}</i>` : ''}</span><input data-in="${i}" placeholder="${esc(HINT[p.type] || 'e.g. [2, 7, 11, 15] or 9 or "abc"')}" value="${esc(old[i] ?? (guess(p) || p.guess || ''))}"></label>`).join('')}${s.params.length ? '<p class="muted small">We filled these in with example values that fit your code. Change them if you like.</p>' : ''}</div>`;
     } else if (s.mode === 'design') {
       $('.inputs').innerHTML = `<div class="inbox"><b>Calls on <code>${esc(s.cls)}</code>:</b><label><span>operations</span><input data-in="0" value='["${esc(s.cls)}"]'></label><label><span>arguments</span><input data-in="1" value="[[]]"></label></div>`;
     } else $('.inputs').innerHTML = '';
@@ -145,7 +145,7 @@ export async function render(el) {
     const out = $('.pg-out');
     out.innerHTML = '<div class="loadbox"><span class="spinner"></span> Getting ready…</div>';
     let s = sig;
-    try { if (!s) { s = await inspect(); if (!s) { out.innerHTML = ''; return; } if (s.mode !== 'script' && (s.params?.length || s.mode === 'design')) { out.innerHTML = '<div class="res-banner">We found your function! Check the inputs above, then press Visualize again.</div>'; return; } } }
+    try { if (!s) { s = await inspect(); if (!s) { out.innerHTML = ''; return; } if (s.mode === 'design' || (s.mode !== 'script' && [...el.querySelectorAll('[data-in]')].some(i => !i.value.trim()))) { out.innerHTML = '<div class="res-banner">We found your function! Check the inputs above, then press Visualize again.</div>'; return; } } }
     catch (e) { out.innerHTML = `<div class="res-banner bad">${esc(e.message)}</div>`; return; }
     const { code, notes } = splitNotes(ed.get());
     const vals = [...el.querySelectorAll('[data-in]')].map(i => i.value);
