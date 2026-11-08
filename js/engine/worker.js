@@ -4,8 +4,8 @@ importScripts(PYODIDE + 'pyodide.js');
 let api = null, pyo = null;
 const ready = (async () => {
   pyo = await loadPyodide({ indexURL: PYODIDE });
-  const src = await (await fetch('tracer.py?v=4')).text();
-  pyo.runPython(src);
+  pyo.runPython(await (await fetch('meaning.py?v=1')).text());
+  pyo.runPython(await (await fetch('tracer.py?v=5')).text());
   api = pyo.globals.get('api');
   postMessage({ type: 'ready' });
 })().catch(err => postMessage({ type: 'fatal', error: String(err) }));

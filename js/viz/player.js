@@ -14,6 +14,8 @@ export const SPEEDS = [
   { id: 'manual', label: 'Manual', ms: 0, tip: 'you press Next yourself' },
 ];
 
+const md = t => esc(t).replace(/`([^`]+)`/g, '<code>$1</code>');
+
 export function createPlayer(root, { code, notes = {}, trace, opts = {}, onDone }) {
   const lines = code.split('\n');
   const steps = trace.steps;
@@ -27,6 +29,7 @@ export function createPlayer(root, { code, notes = {}, trace, opts = {}, onDone 
       <div class="th-head"><span class="pill-lbl">Code</span><span class="th-step"></span></div>
       <div class="codeview" role="list">${lines.map((l, i) => `<div class="cl" data-l="${i + 1}"><span class="ln">${i + 1}</span><span class="hits"></span><span class="ct">${highlight(l)}</span>${notes[i + 1] ? '<span class="nmark" title="This line has a tip"></span>' : ''}</div>`).join('')}</div>
       <div class="explain" aria-live="polite"></div>
+      <div class="meaning" hidden></div>
     </div>
     <div class="th-right"><div class="th-head"><span class="pill-lbl">What's happening</span><span class="th-legend">changed things glow <span class="glow-dot"></span></span></div><div class="vizarea"></div></div>
     <div class="th-controls">
@@ -46,7 +49,7 @@ export function createPlayer(root, { code, notes = {}, trace, opts = {}, onDone 
     </div>
   </div>`;
   const $ = s => root.querySelector(s);
-  const viz = $('.vizarea'), ex = $('.explain'), scrub = $('.scrub'), stepLbl = $('.th-step');
+  const viz = $('.vizarea'), ex = $('.explain'), mn = $('.meaning'), scrub = $('.scrub'), stepLbl = $('.th-step');
   const lineEls = [...root.querySelectorAll('.cl')];
   if (trace.truncated) ex.insertAdjacentHTML('beforebegin', '');
 
@@ -70,7 +73,10 @@ export function createPlayer(root, { code, notes = {}, trace, opts = {}, onDone 
       if (top < box.scrollTop || top > box.scrollTop + box.clientHeight - 40) box.scrollTop = top - box.clientHeight / 3;
     }
     const e = explain(trace, k, lines, notes);
-    ex.innerHTML = `<div class="ex-line">Line ${s.l}</div><div class="ex-head">${e.head}</div>${e.note ? `<div class="ex-note">${esc(e.note)}</div>` : ''}${e.changes.length ? `<div class="ex-chg"><b>What changed:</b><ul>${e.changes.map(x => `<li class="t-${x.t}">${x.html}</li>`).join('')}</ul></div>` : ''}${k === steps.length - 1 ? finalBox() : ''}`;
+    ex.innerHTML = `<div class="ex-line">Line ${s.l} · right now</div><div class="ex-head">${e.head}</div>${e.note ? `<div class="ex-note">${esc(e.note)}</div>` : ''}${e.changes.length ? `<div class="ex-chg"><b>What changed:</b><ul>${e.changes.map(x => `<li class="t-${x.t}">${x.html}</li>`).join('')}</ul></div>` : ''}${k === steps.length - 1 ? finalBox() : ''}`;
+    const mean = trace.meaning && trace.meaning[s.l];
+    mn.hidden = !mean;
+    if (mean) mn.innerHTML = `<div class="ex-line">What this line means</div><div class="mn-say">${md(mean.say)}</div>${mean.order?.length ? `<div class="mn-order"><b>Python works it out in this order:</b><ol>${mean.order.map(o => `<li>${md(o)}</li>`).join('')}</ol></div>` : ''}${mean.tip ? `<div class="mn-tip">${md(mean.tip)}</div>` : ''}`;
     const state = stateAt(steps, k);
     const prevState = k > 0 ? stateAt(steps, k - 1) : null;
     renderState(viz, state, prevState, trace, { ...opts, stepIndex: k + (state === s ? 0 : 1) });

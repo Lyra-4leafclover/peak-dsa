@@ -318,3 +318,12 @@ button.w-gcell { cursor: pointer; }
 .stdin-row input:focus { border-color: var(--lavD); }
 .stdin-past { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .85rem; }
 .ex-final.wait { background: var(--lav); }
+
+/* "What this line means" box */
+.meaning { margin-top: 12px; background: #fff; border-radius: var(--r2); padding: 14px 16px; box-shadow: var(--shadow); border: 2px solid var(--sky); }
+.meaning[hidden] { display: none; }
+.mn-say { font-weight: 600; line-height: 1.5; margin-top: 4px; }
+.mn-order { margin-top: 10px; font-size: .92rem; }
+.mn-order ol { margin: 6px 0 0; padding-left: 22px; display: flex; flex-direction: column; gap: 4px; line-height: 1.45; }
+.mn-tip { margin-top: 10px; background: var(--mint); border-radius: 12px; padding: 8px 12px; font-size: .9rem; }
+.meaning code { overflow-wrap: anywhere; }
