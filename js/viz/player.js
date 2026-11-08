@@ -17,7 +17,7 @@ export const SPEEDS = [
 export function createPlayer(root, { code, notes = {}, trace, opts = {}, onDone }) {
   const lines = code.split('\n');
   const steps = trace.steps;
-  let k = 0, timer = null, playing = false;
+  let k = Math.max(0, Math.min(steps.length - 1, opts.startAt || 0)), timer = null, playing = false;
   let speed = store.get('speed', 'walk');
   let predict = false, score = { ok: 0, total: 0 };
 
@@ -81,6 +81,7 @@ export function createPlayer(root, { code, notes = {}, trace, opts = {}, onDone 
   }
   function finalBox() {
     const err = trace.error;
+    if (trace.needInput != null) return '<div class="ex-final wait">Paused: your program wants you to type something in the box below.</div>';
     if (err) return `<div class="ex-final err">${esc(err.error)}${err.line ? ` (line ${err.line})` : ''}</div>`;
     if (trace.result !== null && trace.result !== undefined) return `<div class="ex-final">Done! The answer is <code>${esc(trace.result)}</code></div>`;
     return '<div class="ex-final">Done!</div>';

@@ -16,6 +16,19 @@ for end in range(len(nums) - 1, 0, -1):
             nums[j], nums[j + 1] = nums[j + 1], nums[j]
 print(nums)
 `],
+  ['Guess the number (input)', `secret = 7
+tries = 0
+while True:
+    guess = int(input("Guess a number from 1 to 10: "))
+    tries += 1
+    if guess == secret:
+        print("You got it in", tries, "tries!")
+        break
+    elif guess < secret:
+        print("Higher!")
+    else:
+        print("Lower!")
+`],
   ['Two Sum (LeetCode style)', `class Solution:
     def twoSum(self, nums: List[int], target: int) -> List[int]:
         seen = {}
@@ -87,7 +100,7 @@ const HINT = { ListNode: 'a list like [1, 2, 3] → we build the linked list for
 export async function render(el) {
   el.innerHTML = `<div class="wrap">
     <div class="phead">${art('visualizer', 'ph')}<div class="txt"><h1>Code Visualizer</h1>
-      <p>Paste <b>any</b> Python here: a little script, a function, or a whole LeetCode <code>class Solution</code>. Press Visualize and watch it run line by line, in the real order, with pictures. Add <code>#&gt; a note</code> at the end of a line to leave yourself a tip that pops up when that line runs.</p></div></div>
+      <p>Paste <b>any</b> Python here: a little script, a function, or a whole LeetCode <code>class Solution</code>. Press Visualize and watch it run line by line, in the real order, with pictures. Add <code>#&gt; a note</code> at the end of a line to leave yourself a tip that pops up when that line runs. If your program asks for <code>input()</code>, it pauses and lets you type. Libraries like <code>numpy</code> and <code>pandas</code> load by themselves.</p></div></div>
     <div class="card pg">
       <div class="row"><b>Try an example:</b><div class="presets">${PRESETS.map((p, i) => `<button class="chipbtn" data-p="${i}">${p[0]}</button>`).join('')}</div></div>
       <div class="ed"></div>

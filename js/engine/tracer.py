@@ -253,6 +253,8 @@ class Encoder:
             return {"s": v if len(v) <= 400 else v[:400] + '…'}
         if isinstance(v, (complex, bytes, range)):
             return {"s": repr(v), "q": 1}
+        if (type(v).__module__ or '').startswith('numpy') and getattr(v, 'ndim', None) == 0 and hasattr(v, 'item'):
+            return self.enc(v.item())
         r = self.rid(v)
         if r not in self.heap:
             if len(self.heap) >= self.HEAP_LIM:
@@ -263,6 +265,9 @@ class Encoder:
 
     def obj(self, v):
         L = self.LIM
+        lib = self.lib(v)
+        if lib is not None:
+            return lib
         if isinstance(v, list):
             return {"k": "list", "v": [self.enc(x) for x in v[:L]], "n": len(v)}
         if isinstance(v, tuple):
@@ -297,6 +302,25 @@ class Encoder:
         except Exception:
             r = type(v).__name__
         return {"k": "other", "repr": r[:120]}
+
+
+    def lib(self, v):
+        mod, name, L = type(v).__module__ or '', type(v).__name__, self.LIM
+        try:
+            if mod.startswith('numpy') and name == 'ndarray' and v.ndim in (1, 2):
+                t = v.tolist()
+                self.keep.append(t)
+                return {"k": "list", "v": [self.enc(x) for x in t[:L]], "n": len(t), "cls": "array"}
+            if mod.startswith('pandas') and name == 'DataFrame':
+                t = [[str(c) for c in v.columns]] + v.head(L).values.tolist()
+                self.keep.append(t)
+                return {"k": "list", "v": [self.enc(x) for x in t], "n": len(v) + 1, "cls": "DataFrame"}
+            if mod.startswith('pandas') and name == 'Series':
+                items = list(v.head(L).items())
+                return {"k": "dict", "v": [[self.enc(a), self.enc(b)] for a, b in items], "n": len(v), "cls": "Series"}
+        except Exception:
+            return None
+        return None
 
 
 # ---------- safe condition evaluation ----------
@@ -371,6 +395,10 @@ class StepLimit(Exception):
     pass
 
 
+class NeedInput(BaseException):
+    pass
+
+
 class Out:
     def __init__(self):
         self.parts, self.n = [], 0
@@ -402,6 +430,8 @@ class Tracer:
         self.hide = set(hide)
         self.out = None
         self.truncated = False
+        self.need = None
+        self.cut = None
 
     def visible(self, frame):
         mod = frame.f_code.co_name == '<module>'
@@ -459,6 +489,10 @@ class Tracer:
     def trace(self, frame, event, arg):
         if frame.f_code.co_filename != USER:
             return None
+        if self.need is not None:
+            if event == 'line':
+                raise NeedInput()
+            return self.trace
         if event == 'call':
             cid = len(self.calls) + 1
             self.frames[id(frame)] = cid
@@ -490,7 +524,7 @@ BASE_NAMES = None
 def fresh_globals():
     g = {'__name__': '__main__', '__builtins__': __builtins__}
     for k, v in list(globals().items()):
-        if not k.startswith('_') and k not in ('api', 'Tracer', 'Encoder', 'Sub', 'Out', 'StepLimit', 'fresh_globals'):
+        if not k.startswith('_') and k not in ('api', 'Tracer', 'Encoder', 'Sub', 'Out', 'StepLimit', 'NeedInput', 'fresh_globals'):
             g[k] = v
     return g
 
@@ -606,6 +640,42 @@ def do_trace(p):
     sys.stdout = out
     tr = Tracer(src, p.get('maxSteps', 3000), hide=set(g.keys()))
     tr.out = out
+    answers = [str(a) for a in (p.get('stdin') or [])]
+
+    def fake_input(prompt=''):
+        out.write(str(prompt))
+        if answers:
+            a = answers.pop(0)
+            out.write(a + '\n')
+            return a
+        if tr.need is None:
+            tr.need, tr.cut = str(prompt), len(tr.steps)
+        # Re-arm tracing so a bare `except:` around input() can't swallow the stop forever:
+        # the next line of the handler raises NeedInput again from the tracer.
+        f = sys._getframe(1)
+        while f is not None:
+            if f.f_code.co_filename == USER:
+                f.f_trace = tr.trace
+            f = f.f_back
+        sys.settrace(tr.trace)
+        raise NeedInput()
+
+    class FakeStdin:
+        def readline(self):
+            return fake_input() + '\n'
+
+        def read(self):
+            return '\n'.join(answers.pop(0) for _ in range(len(answers)))
+
+        def __iter__(self):
+            while answers:
+                yield answers.pop(0) + '\n'
+
+    g['input'] = fake_input
+    old_in, old_sleep = sys.stdin, time.sleep
+    sys.stdin, time.sleep = FakeStdin(), (lambda *a, **k: None)
+    if 'seed' in p:
+        random.seed(p['seed'])
     result, err = None, None
     try:
         code = compile(src, USER, 'exec')
@@ -623,17 +693,29 @@ def do_trace(p):
             finally:
                 sys.settrace(None)
             result = json.dumps(to_plain(result), default=str)
-    except StepLimit:
+    except (StepLimit, NeedInput, SystemExit):
         err = None
     except SyntaxError as e:
         err = {"error": f"SyntaxError: {e.msg}", "line": e.lineno}
     except Exception as e:
-        err = fmt_exc(e)
+        err = fmt_exc(e) if tr.need is None else None
     finally:
         sys.settrace(None)
-        sys.stdout = old
+        sys.stdout, sys.stdin, time.sleep = old, old_in, old_sleep
+    if tr.need is not None:
+        result, err = None, None
+        tr.steps = tr.steps[:tr.cut]
+        if tr.steps:
+            last = dict(tr.steps[-1], o=out.n, e='input')
+            last.pop('exc', None)
+            tr.steps.append(last)
+        tr.calls = [c for c in tr.calls if c['s'] < tr.cut]
+        for c in tr.calls:
+            if c.get('e', -1) >= tr.cut:
+                c.pop('e', None)
+                c.pop('r', None)
     return {"steps": tr.steps, "calls": tr.calls, "out": out.text(), "result": result,
-            "error": err, "truncated": tr.truncated}
+            "error": err, "truncated": tr.truncated, "needInput": tr.need}
 
 
 def do_test(p):
